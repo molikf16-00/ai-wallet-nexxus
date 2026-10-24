@@ -1,0 +1,41 @@
+{
+  "name": "agent-wallet-core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Defensive ERC-4337 AgentWallet policy engine and simulator",
+  "scripts": {
+    "compile": "tsx scripts/compile.ts",
+    "test": "tsx tests/simulator.test.ts",
+    "typecheck": "tsc --noEmit && tsc -p web/tsconfig.json --noEmit",
+    "test:attacks": "tsx tests/attack-suite.test.ts",
+    "test:anomaly": "tsx tests/anomaly-guard.test.ts",
+    "test:recovery": "tsx tests/guardian-recovery.test.ts",
+    "test:fuzz": "tsx tests/fuzz-engine.test.ts",
+    "build": "vite build",
+    "build:frontend": "vite build",
+    "frontend:dev": "vite --host 127.0.0.1",
+    "dashboard": "npm run build:frontend && tsx scripts/dashboard-server.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ethers": "^6.15.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "solc": "^0.8.30"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^5.0.4",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vite": "^7.1.7"
+  }
+}

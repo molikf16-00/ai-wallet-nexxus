@@ -1,0 +1,629 @@
+{
+  "contractName": "GuardianRecoveryModule",
+  "sourceName": "contracts/GuardianRecoveryModule.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "wallet_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "owner_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "guardian",
+          "type": "address"
+        }
+      ],
+      "name": "DuplicateGuardian",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "guardian",
+          "type": "address"
+        }
+      ],
+      "name": "GuardianAlreadyApproved",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "GuardianSetAlreadyConfigured",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidNewKey",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "enum GuardianRecoveryModule.ProposalStatus",
+          "name": "status",
+          "type": "uint8"
+        }
+      ],
+      "name": "InvalidProposalStatus",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        }
+      ],
+      "name": "InvalidRecoveryId",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "approvals",
+          "type": "uint256"
+        }
+      ],
+      "name": "QuorumNotReached",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "RecoveryExecutionFailed",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint48",
+          "name": "executableAfter",
+          "type": "uint48"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "RecoveryTimelockActive",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        }
+      ],
+      "name": "UnauthorizedGuardian",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        }
+      ],
+      "name": "UnauthorizedOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        }
+      ],
+      "name": "UnauthorizedWallet",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "guardian",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "approvalCount",
+          "type": "uint8"
+        }
+      ],
+      "name": "GuardianApprovalAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address[5]",
+          "name": "guardians",
+          "type": "address[5]"
+        }
+      ],
+      "name": "GuardiansConfigured",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerSynchronized",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newKey",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum GuardianRecoveryModule.RecoveryTarget",
+          "name": "target",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint48",
+          "name": "timestamp",
+          "type": "uint48"
+        }
+      ],
+      "name": "RecoveryExecuted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "proposer",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newKey",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum GuardianRecoveryModule.RecoveryTarget",
+          "name": "target",
+          "type": "uint8"
+        }
+      ],
+      "name": "RecoveryInitiated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint48",
+          "name": "executableAfter",
+          "type": "uint48"
+        }
+      ],
+      "name": "RecoveryQueued",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint48",
+          "name": "timestamp",
+          "type": "uint48"
+        }
+      ],
+      "name": "RecoveryVetoed",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "GUARDIAN_COUNT",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "QUORUM",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "RECOVERY_DELAY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        }
+      ],
+      "name": "approveRecovery",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[5]",
+          "name": "guardians",
+          "type": "address[5]"
+        }
+      ],
+      "name": "configureGuardians",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        }
+      ],
+      "name": "executeRecovery",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getGuardians",
+      "outputs": [
+        {
+          "internalType": "address[5]",
+          "name": "",
+          "type": "address[5]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "guardiansConfigured",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "guardian",
+          "type": "address"
+        }
+      ],
+      "name": "hasApproved",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newKey",
+          "type": "address"
+        },
+        {
+          "internalType": "enum GuardianRecoveryModule.RecoveryTarget",
+          "name": "target",
+          "type": "uint8"
+        }
+      ],
+      "name": "initiateRecovery",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "guardian",
+          "type": "address"
+        }
+      ],
+      "name": "isGuardian",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "nextRecoveryId",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        }
+      ],
+      "name": "proposals",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "proposer",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "newKey",
+          "type": "address"
+        },
+        {
+          "internalType": "enum GuardianRecoveryModule.RecoveryTarget",
+          "name": "target",
+          "type": "uint8"
+        },
+        {
+          "internalType": "enum GuardianRecoveryModule.ProposalStatus",
+          "name": "status",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "approvalCount",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint48",
+          "name": "createdAt",
+          "type": "uint48"
+        },
+        {
+          "internalType": "uint48",
+          "name": "executableAfter",
+          "type": "uint48"
+        },
+        {
+          "internalType": "uint48",
+          "name": "executedAt",
+          "type": "uint48"
+        },
+        {
+          "internalType": "uint48",
+          "name": "vetoedAt",
+          "type": "uint48"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "synchronizeOwner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "recoveryId",
+          "type": "uint256"
+        }
+      ],
+      "name": "vetoRecovery",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "wallet",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "evm": {
+    "bytecode": {
+      "object": "60a0346100e257601f61105b38819003918201601f19168301916001600160401b038311848410176100e65780849260409485528339810103126100e257610052602061004b836100fa565b92016100fa565b60018055906001600160a01b0381161580156100d1575b6100c2576080525f80546001600160a01b0319166001600160a01b0392909216919091179055604051610f4c908161010f823960805181818160f3015281816104f8015281816105c4015281816106e7015261074e0152f35b63e6c4247b60e01b5f5260045ffd5b506001600160a01b03821615610069565b5f80fd5b634e487b7160e01b5f52604160045260245ffd5b51906001600160a01b03821682036100e25756fe60808060405260033611610011575f80fd5b5f905f3560e01c908163013cf08b14610da45750806306337d5e14610aff5780630665f04b14610a6b5780630be1ee2414610a475780630c68ba2114610a0a578063113647bb146108765780632358d5a8146108225780632e80d9b61461080757806336acbe19146107ec57806341e6005d1461073357806347b4565214610716578063521eb273146106d257806356570571146104215780638da5cb5b146103fa578063b94f13f0146103dc578063e93807dd1461027b5763efc76571146100d8575f80fd5b346102785760a0366003190112610278573660a411610278577f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031633036102655760ff815460a01c1661025657805b60058210156101de576001600160a01b0361015161014c84610eb2565b610ed8565b1680156101cf57815b83811061019857506002830180546001600160a01b031916821790558152600760205260408120805460ff191660019081179091559091019061012f565b816001600160a01b036101ad61014c84610eb2565b16146101bb5760010161015a565b636c2d22d760e01b83526004829052602483fd5b63e6c4247b60e01b8252600482fd5b805460ff60a01b1916600160a01b178155604051816004825b6005831061022857847fc989675a7aed089a5fbf2ab0dc5f8f6812209330245cc52ff07a338e868c307d60a086a180f35b81356001600160a01b038116919082900361025257602081600193829352019201920191906101f7565b8580fd5b637ac804a960e11b8152600490fd5b6303f3b54360e11b815233600452602490fd5b80fd5b5034610278576020366003190112610278578054600435906001600160a01b031633036103c9576102ab81610eec565b90600282019160ff835460a81c1660058110156103b5576001811415806103aa575b6103925750825460ff60a81b1916600160aa1b178355600301805465ffffffffffff60601b191642606081901b65ffffffffffff60601b169190911790915565ffffffffffff16835b60058110156103545782855260096020908152604080872060028401546001600160a01b03165f90815292529020805460ff19169055600101610316565b50825460ff60b01b191690925560405191825233917f1bbdd765336586ebd0f9b52336181a3fdbe21c74102ac84b790befcb82d663a090602090a380f35b846103a860249263735671c760e11b8352610e6c565bfd5b5060028114156102cd565b634e487b7160e01b85526021600452602485fd5b636e2ccd7560e11b825233600452602482fd5b50346102785780600319360112610278576020600154604051908152f35b5034610278578060031936011261027857546040516001600160a01b039091168152602090f35b503461067557602036600319011261067557600435335f52600760205260ff60405f205416156106bf5761045481610eec565b90600282019160ff835460a81c16600581101561067957600281036106a757506003019165ffffffffffff83541680421061068d5750805460ff60a81b1916600360a81b17815582546bffffffffffff000000000000191642603081901b6bffffffffffff000000000000169190911790935565ffffffffffff9290921691805460ff8160a01c166002811015610679576105c25750805484906001600160a01b037f000000000000000000000000000000000000000000000000000000000000000081169116813b156105be5782916024839260405194859384926337e9868d60e11b845260048401525af180156105b35761059a575b505060407fabbced0382f30042f5655f2f7eaf467e4c32f29f4d4e041c7bf78c2ea28bec36915b548151946105878660ff8460a01c16610e5f565b60208601526001600160a01b031693a380f35b816105a491610e90565b6105af57835f61054c565b8380fd5b6040513d84823e3d90fd5b8280fd5b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031690813b15610675576040516320ca070b60e11b81526001600160a01b039091166004820152905f908290602490829084905af1801561066a57610654575b5060407fabbced0382f30042f5655f2f7eaf467e4c32f29f4d4e041c7bf78c2ea28bec3691610573565b6106619194505f90610e90565b5f92604061062a565b6040513d5f823e3d90fd5b5f80fd5b634e487b7160e01b5f52602160045260245ffd5b82638a48804f60e01b5f526004526024524260445260645ffd5b63735671c760e11b5f526106ba90610e6c565b60245ffd5b63672585e160e01b5f523360045260245ffd5b34610675575f366003190112610675576040517f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03168152602090f35b34610675575f3660031901126106755760206040516202a3008152f35b346106755760203660031901126106755761074c610e7a565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031633036107d9576001600160a01b031680156107ca575f548160018060a01b0382167fbea19d26a75bc0229093a5332c0efa30e3c43f0bc6a40cd0c7655f4e150d27525f80a36001600160a01b031916175f55005b63e6c4247b60e01b5f5260045ffd5b6303f3b54360e11b5f523360045260245ffd5b34610675575f36600319011261067557602060405160058152f35b34610675575f36600319011261067557602060405160038152f35b34610675576040366003190112610675576024356001600160a01b0381168103610675576004355f52600960205260405f209060018060a01b03165f52602052602060ff60405f2054166040519015158152f35b3461067557602036600319011261067557600435335f52600760205260ff60405f205416156106bf576108a881610eec565b6002810160ff815460a81c16600581101561067957600181036106a757505f83815260096020908152604080832033845290915290205460ff166109f357825f52600960205260405f2060018060a01b0333165f5260205260405f20600160ff19825416179055600160ff825460b01c160160ff81116109df57815460ff60b01b191660b09190911b60ff60b01b16178155600360ff825460b01c16604051818152857fe2280937a313e6f86a20fbb73820c4232ac4641d6eec2be909268e64aa3dcc2660203393a3101561097957005b805460ff60a81b1916600160a91b179055426202a30081019081106109df5765ffffffffffff602091818060037f849bf07f985c2237646d9723712781ddf55ef143049730f3053b6bf8d70a1793960192161682198254161781555416604051908152a2005b634e487b7160e01b5f52601160045260245ffd5b8263765cbb6760e11b5f526004523360245260445ffd5b34610675576020366003190112610675576001600160a01b03610a2b610e7a565b165f526007602052602060ff60405f2054166040519015158152f35b34610675575f36600319011261067557602060ff5f5460a01c166040519015158152f35b34610675575f3660031901126106755760a080604051610a8b8282610e90565b36903760405160025f825b60058210610adf57505050610aab8282610e90565b604051905f825b60058210610abf57505050f35b82516001600160a01b031681526020928301926001929092019101610ab2565b82546001600160a01b031681526001928301929190910190602001610a96565b3461067557604036600319011261067557610b18610e7a565b60243590600282101561067557335f52600760205260ff60405f205416156106bf5760ff5f5460a01c1615610d91576001600160a01b03168015610d8257600154905f1982146109df576001820160015560405192610140840184811067ffffffffffffffff821117610d6e57604052828452602084019333855260408101948386526060820183815260808301916001835260a08401935f855260c081019865ffffffffffff42168a5260e08201945f86526101008301945f86526101208401945f86528b5f52600860205260405f209451855560018060a01b03905116600185019060018060a01b03166bffffffffffffffffffffffff60a01b825416179055600284019260018060a01b039060018060a01b03905116166bffffffffffffffffffffffff60a01b84541617835551600281101561067957825460ff60a01b191660a09190911b60ff60a01b161782555193600585101561067957815496519a5165ffffffffffff60b81b60b89190911b1660b09b909b1b60ff60b01b1660a89590951b60ff60a81b1667ffffffffffffffff60a81b1990971696909617939093179890981790915590516003909601805492516bffffffffffff00000000000060309190911b1665ffffffffffff9788166bffffffffffffffffffffffff1990941693909317929092178255602095610d33929151825465ffffffffffff60601b1916911660601b65ffffffffffff60601b16179055565b610d406040518092610e5f565b827fff051eb36d71dba57119e5f4bf232c5205a22637cd7ec777fddcedd076b09df0853393a4604051908152f35b634e487b7160e01b5f52604160045260245ffd5b63cd45f65160e01b5f5260045ffd5b63735671c760e11b5f525f60045260245ffd5b34610675576020366003190112610675576004355f52600860205260405f2090815460018060a01b0360018401541690600284015491600360ff8460a81c16950154918452602084015260018060a01b0382166040840152610e0f6060840160ff8460a01c16610e5f565b60058410156106795765ffffffffffff809261014095608086015260ff8160b01c1660a086015260b81c1660c084015281811660e0840152818160301c1661010084015260601c16610120820152f35b9060028210156106795752565b600581101561067957600452565b600435906001600160a01b038216820361067557565b90601f8019910116810190811067ffffffffffffffff821117610d6e57604052565b6005811015610ec45760051b60040190565b634e487b7160e01b5f52603260045260245ffd5b356001600160a01b03811681036106755790565b90815f52600860205260405f2091825415610f045750565b63021d693f60e41b5f5260045260245ffdfea2646970667358221220a7fbdcdeb9e8d9c3eabd6055276f6300a135193920d3d15fabe2e840de0971b264736f6c63430008260033"
+    }
+  }
+}

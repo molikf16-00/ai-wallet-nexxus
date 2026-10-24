@@ -1,0 +1,10 @@
+[profile.default]
+src = "contracts"
+test = "test"
+solc_version = "0.8.24"
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+fuzz_runs = 256
+invariant_runs = 64
+invariant_depth = 128

@@ -1,0 +1,43 @@
+{
+  "contractName": "SignatureLib",
+  "sourceName": "contracts/libraries/SignatureLib.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "InvalidSignature",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "length",
+          "type": "uint256"
+        }
+      ],
+      "name": "InvalidSignatureLength",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidSignatureS",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "v",
+          "type": "uint8"
+        }
+      ],
+      "name": "InvalidSignatureV",
+      "type": "error"
+    }
+  ],
+  "evm": {
+    "bytecode": {
+      "object": "6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea2646970667358221220981e06d88e2f69ff3df236ce1af3bc9896d6f2552c70fffa0abc7bd16c64c66264736f6c63430008260033"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "contractName": "IAnomalyFreezeCallback",
+  "sourceName": "contracts/AnomalyGuard.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "freezeFromAnomalyGuard",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "evm": {
+    "bytecode": {
+      "object": ""
+    }
+  }
+}

@@ -12,8 +12,9 @@
     "test:anomaly": "tsx tests/anomaly-guard.test.ts",
     "test:recovery": "tsx tests/guardian-recovery.test.ts",
     "test:fuzz": "tsx tests/fuzz-engine.test.ts",
-    "build": "vite build",
-    "build:frontend": "vite build",
+    "generate:contracts": "tsx scripts/generate-contracts-data.ts",
+    "build": "npm run generate:contracts && vite build",
+    "build:frontend": "npm run generate:contracts && vite build",
     "frontend:dev": "vite --host 127.0.0.1",
     "dashboard": "npm run build:frontend && tsx scripts/dashboard-server.ts"
   },

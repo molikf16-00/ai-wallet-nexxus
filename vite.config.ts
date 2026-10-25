@@ -10,7 +10,6 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": "http://127.0.0.1:4173",
-      "/fuzz-worker.js": "http://127.0.0.1:4173",
     },
   },
   build: {

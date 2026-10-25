@@ -196,14 +196,14 @@ export class AnomalyBenchmark {
       const detector = new AnomalyGuardSimulator(threshold);
       const warmup = pattern.transactions.slice(0, 5);
       detector.seedProfile(warmup);
-      let firstFreeze = 0;
+      let firstFreeze: number | null = null;
       for (const transaction of pattern.transactions.slice(5)) {
         const observation = detector.observe(transaction);
-        if (observation.risk.frozen && firstFreeze === 0) firstFreeze = transaction.timestamp - pattern.transactions[0].timestamp;
+        if (observation.risk.frozen && firstFreeze === null) firstFreeze = transaction.timestamp - pattern.transactions[5].timestamp;
       }
       if (pattern.classification === "malicious" && detector.frozen) {
         truePositives += 1;
-        containmentTimes.push(firstFreeze);
+        containmentTimes.push(firstFreeze ?? 0);
       } else if (pattern.classification === "malicious") {
         falseNegatives += 1;
       } else if (detector.frozen) {

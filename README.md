@@ -1,163 +1,74 @@
-# Nexus — Autonomous Agent Smart Account
+# Nexus wallet workspace
 
-> Enterprise-grade, defense-in-depth smart account architecture for autonomous AI agents, built on **ERC-4337 v0.7** and **ERC-7579** (Minimal Modular Accounts).
+A browser-based demonstration of guarded agent payments, attack simulations, anomaly detection, guardian recovery, and randomized verification. The dashboard does not connect to a wallet or broadcast transactions.
 
----
+## Start
 
-## Overview
+Use Node 20 or later.
 
-Delegating raw private keys (EOA) to autonomous AI agents poses catastrophic financial and operational risk. If an agent's private key is leaked or manipulated via prompt injection, 100% of the account's assets can be drained in a single transaction.
+- `npm ci`
+- `npm run check` — all nine test suites, TypeScript checks, contract compilation, and production build.
+- `npm run frontend:dev` — frontend development.
+- `npm exec vite -- preview --host 127.0.0.1` — test the static production build.
+- `npm run dashboard` — local frontend plus optional AI endpoint on port 4173.
 
-**Nexus** solves this by enclosing AI agents within 4 concentric layers of deterministic on-chain protection:
-1. **Ring 1: Scoped Session Keys (EIP-712)** — Ephemeral keys limited to pre-approved smart contract methods with temporal expiry.
-2. **Ring 2: Bounded Policy Engine (ERC-7579 Hook Type 4)** — Strict programmatic single-transaction caps (`0.05 ETH`) and rolling 24-hour spend limits (`0.25 ETH`).
-3. **Ring 3: Anomaly Sentinel & Circuit Breaker** — Exponentially Weighted Moving Average (EWMA) burst detector that automatically halts execution upon suspicious transaction clustering.
-4. **Ring 4: 3-of-5 Guardian Social Recovery** — Hardware and cold-storage guardian recovery cluster with a mandatory 48-hour timelock and instant owner veto buffer.
+Build once before starting frontend development so that `web/public/contracts.json` is generated.
 
----
+## What works without a backend
 
-## System Architecture
+- Security lab executes the existing six TypeScript attack fixtures, retaining pass/fail results and displaying the selected trace. Each fixture has its own limits.
+- Anomaly Shield runs a synthetic 1,000-pattern benchmark in a module worker. Its curve and timing are calculated from results.
+- Recovery is isolated to the browser tab: propose a valid replacement address, simulate three guardian approvals, advance the 48-hour clock, then execute; the owner can veto an active/pending proposal.
+- Verification runs bounded randomized checks in a worker, supports cancellation and an intentionally flawed mode, and renders counterexamples safely.
+- Contracts displays source and ABI exported from the current compilation.
+- Agent tasks creates explicit payment plans, checks approved recipients and bigint spending limits, requires confirmation, rechecks current policy, and records completion/cancellation. Duplicate confirmations cannot debit the demo allowance twice.
 
-```
-                  ┌──────────────────────────────────────────────┐
-                  │          Autonomous AI Agent Process         │
-                  └──────────────────────┬───────────────────────┘
-                                         │ Signs UserOp with Ephemeral Key
-                                         ▼
-                  ┌──────────────────────────────────────────────┐
-                  │             EntryPoint v0.7 Core             │
-                  │        • 2D Nonce Key Replay Isolation       │
-                  │        • EIP-712 Session Key Validation      │
-                  └──────────────────────┬───────────────────────┘
-                                         │
-                        ┌────────────────┴────────────────┐
-                        ▼                                 ▼
-             ┌─────────────────────┐           ┌─────────────────────┐
-             │ Paymaster Gas Quota │           │ ERC-7579 Hook Type 4│
-             │   (500k Gas/Day)    │           │  NexusPolicyHook    │
-             └─────────────────────┘           └──────────┬──────────┘
-                                                          │ Pre-Check:
-                                                          │ • Amount ≤ 0.05 ETH
-                                                          │ • Daily ≤ 0.25 ETH
-                                                          │ • Target in Calldata Allowlist
-                                                          ▼
-                                               ┌─────────────────────┐
-                                               │ Vault Execution     │
-                                               │ (Target Contract)   │
-                                               └──────────┬──────────┘
-                                                          │ Post-Check:
-                                                          │ • Update rolling spend slot
-                                                          ▼
-                                               ┌─────────────────────┐
-                                               │ Final Settlement    │
-                                               └─────────────────────┘
-```
+Demo state resets on reload. There is no real daily clock, wallet balance, gas sponsorship, blockchain receipt, guardian signature, or deployed-contract verification. The agent and attack fixtures are separate simulations.
 
----
+## Intent-driven architecture
 
-## Repository Structure
+Request → interpretation → structured payment plan → deterministic policy checks → user confirmation → policy recheck → simulation result and activity history.
 
-```
-├── contracts/               # Verified Solidity smart contracts
-│   ├── NexusAccount.sol     # ERC-4337 + ERC-7579 modular account core
-│   ├── NexusPolicyHook.sol  # Type 4 pre/post execution policy hook
-│   ├── NexusRecovery.sol    # 3-of-5 guardian recovery with 48h timelock
-│   └── AnomalyShield.sol    # EWMA z-score burst anomaly detector
-├── dashboard/               # Standalone worker & simulator assets
-│   └── fuzz-worker.js       # In-browser WebWorker mutation fuzzer
-├── scripts/                 # Compilation & local simulation servers
-│   ├── compile.ts           # Solc compiler script
-│   └── dashboard-server.ts  # Local static & API development server
-├── src/                     # Core backend models, invariants & simulators
-├── tests/                   # Comprehensive empirical test suites
-│   ├── attack-suite.test.ts # 6 adversarial penetration vectors
-│   ├── anomaly-guard.test.ts# ROC anomaly curve benchmarks
-│   ├── guardian-recovery.test.ts # Quorum, timelock & veto invariants
-│   └── simulator.test.ts    # UserOp execution simulator
-└── web/                     # React + Vite + TailwindCSS frontend
-    ├── index.html           # HTML entry point with typography
-    ├── public/              # Static assets (fuzz-worker.js)
-    └── src/
-        ├── App.tsx          # Full dashboard UI with interactive rings & pipeline
-        └── styles.css       # Tailwind design tokens
-```
+The planner supports a single ETH payment to an explicit address or the Inference API / Cloud GPU service. Missing amounts or recipients require a new, complete request. Unsupported operations such as swaps, recurring payments, and permission changes are not executed.
 
----
+The state machine is in `src/intent-agent.ts`. Payment execution is currently a simulated allowance debit, not an EVM transaction. A production execution adapter would need wallet authentication, signed approvals, durable per-user state, network-aware receipts, and on-chain enforcement.
 
-## Getting Started
+## Optional AI interpretation
 
-### Prerequisites
+The app uses its local parser by default. To enable broader wording on Vercel, configure these **server-only** environment variables:
 
-- **Node.js**: `v20.0.0` or higher
-- **npm** or **pnpm**
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL`: a model available to your account that supports Responses structured outputs
+- `ENABLE_AI_PLANNER=true`
 
-### Installation
+Do not use a `VITE_` prefix for secrets. Configure deployment access controls, provider spending limits, and endpoint rate limiting before enabling the public paid endpoint. The local demo itself needs no API key.
 
-```bash
-# Clone the repository
-git clone https://github.com/<your-username>/nexus-wallet.git
-cd nexus-wallet
+The browser discovers availability through `GET /api/intent`. Users explicitly select AI interpretation before their request text is sent. `POST /api/intent` returns a structured proposal or clarification, with bounded input, timeout, provider-error handling, and runtime validation. It has no wallet keys or execution tools. The proposal always passes through the same local policy engine and user confirmation.
 
-# Install dependencies
-npm install
-```
+Provider schema: [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs).
 
-### Running Locally
+The automated API suite uses a mocked provider. A real provider call requires the server configuration above and was not exercised during this change.
 
-```bash
-# Build the frontend dashboard
-npm run build
+## Deploy
 
-# Start the full dashboard server (UI + API simulation on port 4173)
-npm run dashboard
-```
-Open [http://127.0.0.1:4173](http://127.0.0.1:4173) in your browser.
+Vercel builds with `npm run build` and serves `web/dist`. The build compiles Solidity, exports source/ABI JSON, and builds the frontend and worker. `api/intent.ts` is the optional serverless endpoint; the remaining features need no server.
 
----
+No private keys or secret environment files belong in the repository.
 
-## Automated Verification & Test Suites
+## Verification boundaries
 
-Nexus enforces zero-assumption empirical verification:
+The TypeScript suites cover simulator, attacks, anomaly, recovery, fuzzing, agent state transitions, the optional API, and browser-worker payloads. Solidity source compiles successfully. Foundry is not installed in the current environment, so its invariant test was not executed. Compilation and passing model tests are not a security audit of the Solidity contracts.
 
-```bash
-# 1. Run 6 Adversarial Attack Containment Tests
-npm run test:attacks
+## Conversational copilot
 
-# 2. Run Anomaly Benchmark & ROC Invariant Tests
-npm run test:anomaly
+The **Ask Copilot** button is available on every page. Its chat history stays available while navigating within the current tab. It can:
 
-# 3. Run 3-of-5 Guardian Social Recovery Tests
-npm run test:recovery
+- Explain the page you are viewing and guide you to spending rules, recovery, verification, contracts, or security checks.
+- Read the current demo allowance, pause state, and recent task outcomes.
+- Ask for a missing payment amount or recipient, and offer a button to create a plan for review.
+- Hand payment proposals to the same policy-checked Agent tasks flow. Chat cannot confirm or execute a payment.
 
-# 4. Run Core Execution Simulator Tests
-npm test
+Without AI configuration, the panel clearly identifies itself as a built-in guide with a bounded set of supported questions. With the existing server-only AI settings enabled, users can opt into AI chat. This sends up to 12 recent messages and a limited demo context snapshot to `POST /api/copilot`. The endpoint validates inputs, uses structured output, handles provider errors/timeouts, and has no execution tools. Use the same deployment access/rate-limit controls described above for this endpoint.
 
-# 5. Typecheck Entire Codebase (Backend + Web)
-npm run typecheck
-```
+`npm run test:copilot` checks contextual guidance, follow-up payment planning, unsupported/unsafe action boundaries, input validation, and mocked provider responses.
 
----
-
-## Deployment on Vercel
-
-This repository includes a native [`vercel.json`](./vercel.json) configuration:
-
-```bash
-# Deploy to preview
-npx vercel
-
-# Deploy to production
-npx vercel --prod
-```
-
-Or connect the GitHub repository directly to Vercel via the Vercel Dashboard:
-- **Framework Preset**: Vite
-- **Root Directory**: `./`
-- **Build Command**: `npm run build`
-- **Output Directory**: `web/dist`
-
----
-
-## License
-
-MIT License. Designed for secure autonomous AI financial agency.

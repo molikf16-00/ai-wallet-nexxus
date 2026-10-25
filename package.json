@@ -12,11 +12,17 @@
     "test:anomaly": "tsx tests/anomaly-guard.test.ts",
     "test:recovery": "tsx tests/guardian-recovery.test.ts",
     "test:fuzz": "tsx tests/fuzz-engine.test.ts",
-    "generate:contracts": "tsx scripts/generate-contracts-data.ts",
-    "build": "vite build",
-    "build:frontend": "npm run generate:contracts && vite build",
+    "generate:contracts": "npm run compile && tsx scripts/export-contracts.ts",
+    "build": "npm run generate:contracts && vite build",
+    "build:frontend": "npm run build",
     "frontend:dev": "vite --host 127.0.0.1",
-    "dashboard": "npm run build:frontend && tsx scripts/dashboard-server.ts"
+    "dashboard": "npm run build:frontend && tsx scripts/dashboard-server.ts",
+    "test:agent": "tsx tests/intent-agent.test.ts",
+    "test:all": "npm test && npm run test:attacks && npm run test:anomaly && npm run test:recovery && npm run test:fuzz && npm run test:agent && npm run test:api && npm run test:worker && npm run test:copilot",
+    "check": "npm run test:all && npm run typecheck && npm run build",
+    "test:api": "tsx tests/intent-api.test.ts",
+    "test:worker": "tsx tests/browser-worker.test.ts",
+    "test:copilot": "tsx tests/copilot.test.ts"
   },
   "engines": {
     "node": ">=20"
@@ -38,5 +44,9 @@
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "vite": "^7.1.7"
+  },
+  "overrides": {
+    "tmp": "^0.2.7"
   }
 }
+

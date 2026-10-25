@@ -70,14 +70,14 @@ function run(iterations, flawed, seed) {
     invariants.expiryBound += 1;
     if (mutation.vetoed && mutation.recoveryFinalized) { violations += 1; firstViolation ??= { index, mode: "veto-integrity", message: "Recovery finalized despite veto.", mutation }; }
     invariants.vetoIntegrity += 1;
-    if (index % 250 === 0 || index === iterations - 1) postMessage({ type: "progress", totalMutationsEvaluated: index + 1, violationsDetected: violations, invariantsVerified: invariants, elapsedMs: Math.max(1, performance.now() - started), runsPerSecond: Math.round(((index + 1) / Math.max(1, performance.now() - started)) * 1000), firstViolation });
+    if (index % 250 === 0 || index === iterations - 1) postMessage({ type: "progress", totalMutationsEvaluated: index + 1, violationsDetected: violations, invariantsVerified: invariants, elapsedMs: Math.max(1, performance.now() - started), runsPerSecond: Math.round(((index + 1) / Math.max(1, performance.now() - started)) * 1000), firstViolation: firstViolation ? JSON.parse(JSON.stringify(firstViolation, (_, value) => typeof value === "bigint" ? value.toString() : value)) : null });
     if (firstViolation && flawed) break;
   }
   const elapsedMs = Math.max(1, performance.now() - started);
-  postMessage({ type: "complete", totalMutationsEvaluated: firstViolation && flawed ? 1 : iterations, violationsDetected: violations, invariantsVerified: invariants, walletBalanceWei: balance.toString(), dailySpentWei: dailySpent.toString(), elapsedMs, runsPerSecond: Math.round((iterations / elapsedMs) * 1000), firstViolation, flawedContract: flawed, proofHash: `worker:${seed}:${violations}:${balance}` });
+  postMessage({ type: "complete", totalMutationsEvaluated: firstViolation && flawed ? 1 : iterations, violationsDetected: violations, invariantsVerified: invariants, walletBalanceWei: balance.toString(), dailySpentWei: dailySpent.toString(), elapsedMs, runsPerSecond: Math.round(((firstViolation && flawed ? 1 : iterations) / elapsedMs) * 1000), firstViolation: firstViolation ? JSON.parse(JSON.stringify(firstViolation, (_, value) => typeof value === "bigint" ? value.toString() : value)) : null, flawedContract: flawed, proofHash: `worker:${seed}:${violations}:${balance}` });
 }
 
 self.onmessage = (event) => {
   const { iterations = 5000, flawedContract = false, seed = 0xa9e17 } = event.data ?? {};
-  run(Math.max(5000, Number(iterations)), Boolean(flawedContract), Number(seed));
+  run(Math.min(50000, Math.max(5000, Math.floor(Number(iterations)) || 5000)), Boolean(flawedContract), Number(seed));
 };

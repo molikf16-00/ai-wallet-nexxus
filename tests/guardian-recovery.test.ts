@@ -31,3 +31,6 @@ assert.throws(() => vetoed.fastForward(172_800) && vetoed.executeRecovery(DEFAUL
 assert.ok(vetoed.getState().audit.some((event) => event.action === "vetoed"));
 
 console.log("Guardian recovery quorum, timelock, veto, reset, and execution tests passed.");
+
+assert.throws(() => new GuardianRecoverySimulator(owner, oldAgent).initiateRecovery(DEFAULT_GUARDIANS[0].address, "not-an-address", "agent"), /InvalidNewKey/);
+assert.throws(() => new GuardianRecoverySimulator(owner, oldAgent).initiateRecovery(DEFAULT_GUARDIANS[0].address, "0x0000000000000000000000000000000000000000", "agent"), /InvalidNewKey/);

@@ -5,6 +5,14 @@
   "outputDirectory": "web/dist",
   "rewrites": [
     {
+      "source": "/api/copilot",
+      "destination": "/api/copilot"
+    },
+    {
+      "source": "/api/intent",
+      "destination": "/api/intent"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

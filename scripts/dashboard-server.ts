@@ -5,6 +5,8 @@ import { dirname, join } from "node:path";
 import { AttackExecutionEngine, ATTACK_CATALOG, type AttackId } from "../src/attack-suite.js";
 import { AnomalyBenchmark } from "../src/anomaly-guard.js";
 import { DEFAULT_GUARDIANS, GuardianRecoverySimulator } from "../src/guardian-recovery.js";
+import intentHandler from "../api/intent.js";
+import copilotHandler from "../api/copilot.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dashboardRoot = join(root, "dashboard");
@@ -91,6 +93,14 @@ function contentTypeFor(path: string): string {
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
+  if (url.pathname === "/api/copilot") {
+    await copilotHandler(request, response);
+    return;
+  }
+  if (url.pathname === "/api/intent") {
+    await intentHandler(request, response);
+    return;
+  }
   if (url.pathname === "/api/attacks") {
     sendJson(response, 200, ATTACK_CATALOG);
     return;

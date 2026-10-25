@@ -1,4 +1,4 @@
-import { keccak256, toUtf8Bytes } from "ethers";
+import { isAddress, keccak256, toUtf8Bytes } from "ethers";
 import type { Hex } from "./types.js";
 
 export type RecoveryTarget = "owner" | "agent";
@@ -94,7 +94,7 @@ export class GuardianRecoverySimulator {
 
   public initiateRecovery(guardianAddress: string, newKey: string, target: RecoveryTarget): RecoveryProposal {
     this.assertGuardian(guardianAddress);
-    if (newKey.toLowerCase() === ZERO_ADDRESS) throw new RecoveryStateError("InvalidNewKey");
+    if (!isAddress(newKey) || newKey.toLowerCase() === ZERO_ADDRESS) throw new RecoveryStateError("InvalidNewKey");
     if (this.proposal && (this.proposal.status === "active" || this.proposal.status === "pending")) {
       throw new RecoveryStateError("RecoveryAlreadyActive");
     }

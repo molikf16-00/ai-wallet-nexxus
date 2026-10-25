@@ -9,7 +9,7 @@ assert.equal(metrics.benignPatterns, 500);
 assert.equal(metrics.maliciousPatterns, 500);
 assert.ok(metrics.truePositiveDetectionRate > 0.96, `TPR ${metrics.truePositiveDetectionRate}`);
 assert.ok(metrics.falseFreezeRate < 0.025, `FPR ${metrics.falseFreezeRate}`);
-assert.ok(metrics.meanTimeToContainmentSeconds >= 0);
+assert.equal(metrics.meanTimeToContainmentSeconds, 0, "single attack inputs are detected immediately; training history must not count toward latency");
 assert.ok(metrics.meanTimeToContainmentBlocks >= 0);
 assert.ok(metrics.proofHash.startsWith("0x"));
 assert.equal(metrics.roc.length, 21);
